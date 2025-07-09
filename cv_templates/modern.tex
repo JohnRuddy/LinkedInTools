@@ -1,0 +1,287 @@
+\documentclass[letterpaper,11pt]{article}
+
+% Packages
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[margin=0.75in]{geometry}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{xcolor}
+\usepackage{fontawesome5}
+\usepackage{tabularx}
+\usepackage{graphicx}
+\usepackage{multicol}
+
+% Color definitions
+\definecolor{primarycolor}{RGB}{0, 119, 181}
+\definecolor{secondarycolor}{RGB}{100, 100, 100}
+\definecolor{accentcolor}{RGB}{230, 230, 230}
+
+% Hyperlink setup
+\hypersetup{
+    colorlinks=true,
+    linkcolor=primarycolor,
+    urlcolor=primarycolor,
+    citecolor=primarycolor
+}
+
+% Custom commands
+\newcommand{\sectiontitle}[1]{
+    \vspace{0.5em}
+    \textcolor{primarycolor}{\Large\textbf{#1}}
+    \vspace{0.2em}
+    \hrule
+    \vspace{0.5em}
+}
+
+\newcommand{\subsectiontitle}[4]{
+    \textbf{#1} \hfill \textcolor{secondarycolor}{\textit{#2}} \\
+    \textcolor{secondarycolor}{#3} \hfill \textcolor{secondarycolor}{#4}
+}
+
+\newcommand{\skill}[1]{\textcolor{primarycolor}{\textbf{#1}}}
+
+% Remove page numbers
+\pagestyle{empty}
+
+% Adjust spacing
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.5em}
+
+\begin{document}
+
+% Header Section
+\begin{center}
+    {\Huge\textbf{{{ profile.name }}}}
+    
+    \vspace{0.3em}
+    
+    \begin{tabular}{c c c}
+        \faEnvelope \, {{ profile.email }} & 
+        \faPhone \, {{ profile.phone | default("N/A") }} & 
+        \faMapMarker \, {{ profile.location | default("N/A") }}
+    \end{tabular}
+    
+    \vspace{0.2em}
+    
+    {% if profile.linkedin_url -%}
+    \faLinkedin \, \href{ {{ profile.linkedin_url }} }{ {{ profile.linkedin_url }} }
+    {%- endif %}
+    
+    \vspace{0.5em}
+    \hrule
+\end{center}
+
+% Professional Summary Section
+{%- if 'summary' in selected_sections %}
+\sectiontitle{Professional Summary}
+{{ profile.summary | default("Experienced professional with a proven track record in delivering high-quality results and driving organizational success.") }}
+{%- endif %}
+
+% Experience Section
+{%- if 'experience' in selected_sections %}
+\sectiontitle{Professional Experience}
+
+{%- for experience in profile.experience | default([]) %}
+\subsectiontitle{ {{ experience.title }} }{ {{ experience.company }} }{ {{ experience.location | default("") }} }{ {{ experience.duration }} }
+
+\begin{itemize}[leftmargin=1em, itemsep=0.2em]
+    {%- for responsibility in experience.responsibilities | default([]) %}
+    \item {{ responsibility }}
+    {%- endfor %}
+\end{itemize}
+
+\vspace{0.3em}
+{%- endfor %}
+
+{# Default experience if no data #}
+{%- if not profile.experience %}
+\subsectiontitle{Software Engineer}{ABC Company}{New York, NY}{2020 - Present}
+
+\begin{itemize}[leftmargin=1em, itemsep=0.2em]
+    \item Developed and maintained web applications using modern technologies
+    \item Collaborated with cross-functional teams to deliver high-quality software solutions
+    \item Participated in code reviews and mentored junior developers
+\end{itemize}
+
+\vspace{0.3em}
+{%- endif %}
+
+{%- endif %}
+
+% Education Section
+{%- if 'education' in selected_sections %}
+\sectiontitle{Education}
+
+{%- for education in profile.education | default([]) %}
+\subsectiontitle{ {{ education.degree }} }{ {{ education.institution }} }{ {{ education.location | default("") }} }{ {{ education.year }} }
+
+{%- if education.gpa %}
+\textcolor{secondarycolor}{GPA: {{ education.gpa }}}
+{%- endif %}
+
+\vspace{0.3em}
+{%- endfor %}
+
+{# Default education if no data #}
+{%- if not profile.education %}
+\subsectiontitle{Bachelor of Science in Computer Science}{University Name}{City, State}{2018}
+
+\textcolor{secondarycolor}{Relevant Coursework: Data Structures, Algorithms, Software Engineering}
+
+\vspace{0.3em}
+{%- endif %}
+
+{%- endif %}
+
+% Skills Section
+{%- if 'skills' in selected_sections %}
+\sectiontitle{Skills \& Competencies}
+
+\begin{multicols}{2}
+\begin{itemize}[leftmargin=1em, itemsep=0.2em]
+    {%- for skill in profile.skills | default([]) %}
+    \item \skill{ {{ skill }} }
+    {%- endfor %}
+    
+    {%- if not profile.skills %}
+    \item \skill{Programming Languages}: Python, JavaScript, Java
+    \item \skill{Web Technologies}: HTML, CSS, React, Node.js
+    \item \skill{Databases}: MySQL, PostgreSQL, MongoDB
+    \item \skill{Tools}: Git, Docker, AWS, Jenkins
+    \item \skill{Methodologies}: Agile, Scrum, DevOps
+    \item \skill{Soft Skills}: Leadership, Communication, Problem-solving
+    {%- endif %}
+\end{itemize}
+\end{multicols}
+
+{%- endif %}
+
+% Projects Section
+{%- if 'projects' in selected_sections %}
+\sectiontitle{Notable Projects}
+
+{%- for project in profile.projects | default([]) %}
+\textbf{ {{ project.name }} } \hfill \textcolor{secondarycolor}{\textit{ {{ project.duration }} }}
+
+{{ project.description }}
+
+\begin{itemize}[leftmargin=1em, itemsep=0.2em]
+    {%- for detail in project.details | default([]) %}
+    \item {{ detail }}
+    {%- endfor %}
+\end{itemize}
+
+\vspace{0.3em}
+{%- endfor %}
+
+{# Default projects if no data #}
+{%- if not profile.projects %}
+\textbf{E-commerce Platform} \hfill \textcolor{secondarycolor}{\textit{2023}}
+
+Developed a full-stack e-commerce platform with modern web technologies.
+
+\begin{itemize}[leftmargin=1em, itemsep=0.2em]
+    \item Built responsive frontend using React and Bootstrap
+    \item Implemented secure payment processing with Stripe API
+    \item Deployed on AWS with automated CI/CD pipeline
+\end{itemize}
+
+\vspace{0.3em}
+{%- endif %}
+
+{%- endif %}
+
+% Certifications Section
+{%- if 'certifications' in selected_sections %}
+\sectiontitle{Certifications}
+
+{%- for cert in profile.certifications | default([]) %}
+\textbf{ {{ cert.name }} } \hfill \textcolor{secondarycolor}{\textit{ {{ cert.issuer }} , {{ cert.date }} }}
+
+{%- if cert.credential_id %}
+\textcolor{secondarycolor}{Credential ID: {{ cert.credential_id }}}
+{%- endif %}
+
+\vspace{0.3em}
+{%- endfor %}
+
+{# Default certifications if no data #}
+{%- if not profile.certifications %}
+\textbf{AWS Certified Solutions Architect} \hfill \textcolor{secondarycolor}{\textit{Amazon Web Services, 2023}}
+
+\textcolor{secondarycolor}{Credential ID: AWS-ASA-123456}
+
+\vspace{0.3em}
+{%- endif %}
+
+{%- endif %}
+
+% Languages Section
+{%- if 'languages' in selected_sections %}
+\sectiontitle{Languages}
+
+\begin{multicols}{2}
+\begin{itemize}[leftmargin=1em, itemsep=0.2em]
+    {%- for language in profile.languages | default([]) %}
+    \item \textbf{ {{ language.name }} }: {{ language.level }}
+    {%- endfor %}
+    
+    {%- if not profile.languages %}
+    \item \textbf{English}: Native
+    \item \textbf{Spanish}: Conversational
+    \item \textbf{French}: Basic
+    {%- endif %}
+\end{itemize}
+\end{multicols}
+
+{%- endif %}
+
+% Volunteer Experience Section
+{% if 'volunteer' in selected_sections %}
+\sectiontitle{Volunteer Experience}
+
+{% for volunteer in profile.volunteer | default([]) %}
+\subsectiontitle{ {{ volunteer.role }} }{ {{ volunteer.organization }} }{ {{ volunteer.location | default("") }} }{ {{ volunteer.duration }} }
+
+{{ volunteer.description }}
+
+\vspace{0.3em}
+{% endfor %}
+
+% Default volunteer if no data
+{% if not profile.volunteer %}
+\subsectiontitle{Volunteer Developer}{Local Non-Profit}{City, State}{2022 - Present}
+
+Developed and maintained website for local charity organization, improving their online presence and donation capabilities.
+
+\vspace{0.3em}
+{% endif %}
+
+{% endif %}
+
+% Honors & Awards Section
+{% if 'honors' in selected_sections %}
+\sectiontitle{Honors \& Awards}
+
+{% for honor in profile.honors | default([]) %}
+\textbf{ {{ honor.name }} } \hfill \textcolor{secondarycolor}{\textit{ {{ honor.issuer }} , {{ honor.date }} }}
+
+{{ honor.description }}
+
+\vspace{0.3em}
+{% endfor %}
+
+% Default honors if no data
+{% if not profile.honors %}
+\textbf{Employee of the Month} \hfill \textcolor{secondarycolor}{\textit{ABC Company, March 2023}}
+
+Recognized for exceptional performance and dedication to project delivery.
+
+\vspace{0.3em}
+{% endif %}
+
+{% endif %}
+
+\end{document}

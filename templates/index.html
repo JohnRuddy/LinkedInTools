@@ -1,0 +1,383 @@
+{% extends "base.html" %}
+
+{% block title %}LinkedIn Profile - LinkedIn Bot{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        {% if not session.get('access_token') %}
+            <!-- Login Section -->
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <h1 class="card-title mb-4">
+                        <i class="fab fa-linkedin fa-3x text-primary mb-3"></i>
+                        <br>Welcome to LinkedIn Bot
+                    </h1>
+                    <p class="card-text text-muted mb-4">
+                        Connect with LinkedIn to view your profile information and generate your CV.
+                    </p>
+                    
+                    <!-- LinkedIn Login Button -->
+                    <a href="{{ url_for('main.linkedin_auth') }}" class="btn btn-primary btn-lg">
+                        <i class="fab fa-linkedin me-2"></i>
+                        Sign in with LinkedIn
+                    </a>
+                </div>
+            </div>
+        {% else %}
+            <!-- Profile Section -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 text-center">
+                            {% if profile.get('picture') %}
+                                <img src="{{ profile.picture }}" alt="Profile Photo" class="rounded-circle mb-3" style="width: 120px; height: 120px; object-fit: cover;">
+                            {% else %}
+                                <div class="bg-secondary rounded-circle mb-3 mx-auto d-flex align-items-center justify-content-center" style="width: 120px; height: 120px;">
+                                    <i class="fas fa-user fa-3x text-white"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-9">
+                            <h2 class="card-title">
+                                {{ profile.get('name', 'N/A') }}
+                            </h2>
+                            <p class="text-muted mb-2">
+                                <i class="fas fa-envelope"></i> {{ profile.get('email', 'N/A') }}
+                            </p>
+                            <p class="text-muted mb-3">
+                                <i class="fas fa-id-card"></i> ID: {{ profile.get('id', 'N/A') }}
+                            </p>
+                            
+                            <div class="mt-3">
+                                <a href="{{ url_for('main.refresh_profile') }}" class="btn btn-outline-primary me-2">
+                                    <i class="fas fa-sync-alt"></i> Refresh Profile
+                                </a>
+                                <a href="{{ url_for('main.logout') }}" class="btn btn-outline-danger">
+                                    <i class="fas fa-sign-out-alt"></i> Logout
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CV Generation Section -->
+            {% if profile.get('sections') %}
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title mb-0">
+                        <i class="fas fa-file-alt"></i> Generate Your CV
+                    </h3>
+                    <p class="text-muted mb-0">Select the sections you want to include in your CV</p>
+                </div>
+                <div class="card-body">
+                    <form id="cvGenerationForm" method="POST" action="{{ url_for('main.generate_cv') }}">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 40px;">
+                                            <i class="fas fa-grip-vertical text-muted" title="Drag to reorder"></i>
+                                        </th>
+                                        <th style="width: 50px;">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="selectAll">
+                                                <label class="form-check-label" for="selectAll">
+                                                    All
+                                                </label>
+                                            </div>
+                                        </th>
+                                        <th>Section</th>
+                                        <th>Description</th>
+                                        <th style="width: 100px;">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="sortable-sections">
+                                    {% for section in profile.sections %}
+                                    <tr class="sortable-row" data-section-id="{{ section.id }}">
+                                        <td class="drag-handle text-center" style="cursor: move;">
+                                            <i class="fas fa-grip-vertical text-muted"></i>
+                                        </td>
+                                        <td>
+                                            <div class="form-check">
+                                                <input class="form-check-input section-checkbox" 
+                                                       type="checkbox" 
+                                                       name="selected_sections" 
+                                                       value="{{ section.id }}" 
+                                                       id="section_{{ section.id }}"
+                                                       {% if section.selected %}checked{% endif %}>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <label class="form-check-label fw-semibold" for="section_{{ section.id }}">
+                                                {{ section.name }}
+                                            </label>
+                                        </td>
+                                        <td>
+                                            <small class="text-muted">{{ section.description }}</small>
+                                        </td>
+                                        <td>
+                                            {% if section.has_data %}
+                                                <span class="badge bg-success">
+                                                    <i class="fas fa-check"></i> Available
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">
+                                                    <i class="fas fa-times"></i> No Data
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Hidden input to store section order -->
+                        <input type="hidden" name="section_order" id="sectionOrder" value="">
+                        
+                        <!-- Ordering feedback -->
+                        <div id="orderingFeedback" class="order-feedback">
+                            <i class="fas fa-check-circle me-2"></i>
+                            Section order updated!
+                        </div>
+                        
+                        <!-- CV Generation Options -->
+                        <div class="row mt-4">
+                            <div class="col-12 mb-3">
+                                <div class="alert alert-info d-flex align-items-center">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    <div>
+                                        <strong>Tip:</strong> Drag the <i class="fas fa-grip-vertical"></i> handle to reorder sections as they will appear in your CV.
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="cvTemplate" class="form-label">
+                                        <i class="fas fa-palette me-1"></i> CV Template
+                                    </label>
+                                    <select class="form-select" id="cvTemplate" name="template">
+                                        {% for template in available_templates %}
+                                        <option value="{{ template.name }}">{{ template.title }}</option>
+                                        {% endfor %}
+                                        {% if not available_templates %}
+                                        <option value="modern">Modern (Default)</option>
+                                        {% endif %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="cvFormat" class="form-label">
+                                        <i class="fas fa-file-export me-1"></i> Output Format
+                                    </label>
+                                    <select class="form-select" id="cvFormat" name="format">
+                                        <option value="pdf">PDF (Recommended)</option>
+                                        <option value="html">HTML Preview</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Generate Button -->
+                        <div class="text-center mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg px-5">
+                                <i class="fas fa-file-download me-2"></i>
+                                Generate CV
+                            </button>
+                        </div>
+                        
+                        <!-- Download Section -->
+                        {% if session.get('cv_file') %}
+                        <div class="text-center mt-3">
+                            <div class="alert alert-success d-flex align-items-center justify-content-center">
+                                <i class="fas fa-check-circle me-2"></i>
+                                <div class="me-3">Your CV is ready for download!</div>
+                                <a href="{{ url_for('main.download_cv') }}" class="btn btn-success btn-sm">
+                                    <i class="fas fa-download me-1"></i>
+                                    Download CV
+                                </a>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+            {% endif %}
+            
+            {% if not profile.get('sections') %}
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-3">Loading your profile sections...</p>
+                    <a href="{{ url_for('main.refresh_profile') }}" class="btn btn-outline-primary">
+                        <i class="fas fa-sync-alt"></i> Retry
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        {% endif %}
+    </div>
+</div>
+
+<!-- JavaScript for checkbox functionality and drag & drop -->
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const selectAllCheckbox = document.getElementById('selectAll');
+    const sectionCheckboxes = document.querySelectorAll('.section-checkbox');
+    
+    // Select All functionality
+    if (selectAllCheckbox) {
+        selectAllCheckbox.addEventListener('change', function() {
+            sectionCheckboxes.forEach(checkbox => {
+                checkbox.checked = this.checked;
+            });
+        });
+    }
+    
+    // Update Select All based on individual checkboxes
+    sectionCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            updateSelectAllState();
+        });
+    });
+    
+    function updateSelectAllState() {
+        const currentCheckboxes = document.querySelectorAll('.section-checkbox');
+        const allChecked = Array.from(currentCheckboxes).every(cb => cb.checked);
+        const noneChecked = Array.from(currentCheckboxes).every(cb => !cb.checked);
+        
+        if (selectAllCheckbox) {
+            selectAllCheckbox.checked = allChecked;
+            selectAllCheckbox.indeterminate = !allChecked && !noneChecked;
+        }
+    }
+    
+    // Initialize drag and drop functionality
+    const sortableElement = document.getElementById('sortable-sections');
+    if (sortableElement) {
+        const sortable = Sortable.create(sortableElement, {
+            handle: '.drag-handle',
+            animation: 150,
+            ghostClass: 'sortable-ghost',
+            chosenClass: 'sortable-chosen',
+            dragClass: 'sortable-drag',
+            onStart: function(evt) {
+                evt.item.style.opacity = '0.5';
+            },
+            onEnd: function(evt) {
+                evt.item.style.opacity = '1';
+                updateSectionOrder();
+                // Re-bind checkbox events after reordering
+                bindCheckboxEvents();
+            }
+        });
+    }
+    
+    function bindCheckboxEvents() {
+        const newCheckboxes = document.querySelectorAll('.section-checkbox');
+        newCheckboxes.forEach(checkbox => {
+            checkbox.removeEventListener('change', updateSelectAllState);
+            checkbox.addEventListener('change', updateSelectAllState);
+        });
+    }
+    
+    function updateSectionOrder() {
+        const rows = document.querySelectorAll('#sortable-sections .sortable-row');
+        const order = Array.from(rows).map(row => row.dataset.sectionId);
+        document.getElementById('sectionOrder').value = order.join(',');
+        
+        // Show visual feedback
+        showOrderingFeedback();
+    }
+    
+    function showOrderingFeedback() {
+        const feedbackElement = document.getElementById('orderingFeedback');
+        if (feedbackElement) {
+            feedbackElement.style.display = 'block';
+            setTimeout(() => {
+                feedbackElement.style.display = 'none';
+            }, 2000);
+        }
+    }
+    
+    // Form validation
+    const form = document.getElementById('cvGenerationForm');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const checkedBoxes = document.querySelectorAll('.section-checkbox:checked');
+            if (checkedBoxes.length === 0) {
+                e.preventDefault();
+                alert('Please select at least one section to include in your CV.');
+                return;
+            }
+            
+            // Update section order before submission
+            updateSectionOrder();
+        });
+    }
+    
+    // Initial setup
+    updateSelectAllState();
+    updateSectionOrder();
+});
+</script>
+
+<style>
+/* Drag and drop styles */
+.sortable-ghost {
+    opacity: 0.4;
+    background: #f8f9fa;
+}
+
+.sortable-chosen {
+    background: #e3f2fd;
+}
+
+.sortable-drag {
+    background: #fff;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+.drag-handle {
+    transition: color 0.2s;
+}
+
+.drag-handle:hover {
+    color: #007bff !important;
+}
+
+.sortable-row {
+    transition: all 0.2s;
+}
+
+.sortable-row:hover {
+    background-color: #f8f9fa;
+}
+
+/* Reorder feedback */
+.order-feedback {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #28a745;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    z-index: 1000;
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .drag-handle {
+        font-size: 1.2em;
+    }
+}
+</style>
+{% endblock %}

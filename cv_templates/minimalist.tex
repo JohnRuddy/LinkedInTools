@@ -1,0 +1,191 @@
+\documentclass[letterpaper,11pt]{article}
+
+% Packages
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{helvet}
+
+% Use Helvetica font
+\renewcommand{\familydefault}{\sfdefault}
+
+% Hyperlink setup
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    urlcolor=black,
+    citecolor=black
+}
+
+% Remove page numbers
+\pagestyle{empty}
+
+% Adjust spacing
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.3em}
+
+% Custom commands
+\newcommand{\sectionheader}[1]{
+    \vspace{0.8em}
+    {\large\textbf{#1}}
+    \vspace{0.3em}
+    \hrule
+    \vspace{0.5em}
+}
+
+\newcommand{\workentry}[4]{
+    \textbf{#1} \hfill #2 \\
+    \textit{#3} \hfill #4
+}
+
+\begin{document}
+
+% Header
+\begin{center}
+    {\Large\textbf{{{ profile.name | default("John Doe") }}}} \\
+    \vspace{0.2em}
+    {{ profile.email | default("john.doe@example.com") }} $\bullet$ 
+    {{ profile.phone | default("(555) 123-4567") }} $\bullet$ 
+    {{ profile.location | default("City, State") }}
+    {% if profile.linkedin_url %}
+    \\ {{ profile.linkedin_url }}
+    {% endif %}
+\end{center}
+
+% Summary
+{% if 'summary' in selected_sections %}
+\sectionheader{Summary}
+{{ profile.summary | default("Professional with expertise in technology and a passion for innovation.") }}
+{% endif %}
+
+% Experience
+{% if 'experience' in selected_sections %}
+\sectionheader{Experience}
+
+{% for experience in profile.experience | default([]) %}
+\workentry{ {{ experience.title }} }{ {{ experience.duration }} }{ {{ experience.company }} }{ {{ experience.location | default("") }} }
+
+\begin{itemize}[leftmargin=1em, itemsep=0.2em, topsep=0.3em]
+    {% for responsibility in experience.responsibilities | default([]) %}
+    \item {{ responsibility }}
+    {% endfor %}
+\end{itemize}
+
+\vspace{0.3em}
+{% endfor %}
+
+% Default experience if no data
+{% if not profile.experience %}
+\workentry{Software Developer}{Jan 2020 - Present}{Tech Company}{Remote}
+
+\begin{itemize}[leftmargin=1em, itemsep=0.2em, topsep=0.3em]
+    \item Develop and maintain web applications using modern frameworks
+    \item Collaborate with cross-functional teams to deliver high-quality products
+    \item Participate in code reviews and contribute to technical documentation
+\end{itemize}
+
+\vspace{0.3em}
+{% endif %}
+
+{% endif %}
+
+% Education
+{% if 'education' in selected_sections %}
+\sectionheader{Education}
+
+{% for education in profile.education | default([]) %}
+\workentry{ {{ education.degree }} }{ {{ education.year }} }{ {{ education.institution }} }{ {{ education.location | default("") }} }
+
+{% if education.gpa %}
+GPA: {{ education.gpa }}
+{% endif %}
+
+\vspace{0.3em}
+{% endfor %}
+
+% Default education if no data
+{% if not profile.education %}
+\workentry{Bachelor of Science in Computer Science}{2020}{State University}{City, State}
+
+Relevant coursework: Software Engineering, Data Structures, Algorithms
+
+\vspace{0.3em}
+{% endif %}
+
+{% endif %}
+
+% Skills
+{% if 'skills' in selected_sections %}
+\sectionheader{Skills}
+
+{% if profile.skills %}
+{{ profile.skills | join(", ") }}
+{% else %}
+Python, JavaScript, React, Node.js, SQL, Git, Docker, AWS, Agile Methodologies
+{% endif %}
+
+{% endif %}
+
+% Projects
+{% if 'projects' in selected_sections %}
+\sectionheader{Projects}
+
+{% for project in profile.projects | default([]) %}
+\textbf{ {{ project.name }} } \hfill {{ project.duration }}
+
+{{ project.description }}
+
+\begin{itemize}[leftmargin=1em, itemsep=0.2em, topsep=0.3em]
+    {% for detail in project.details | default([]) %}
+    \item {{ detail }}
+    {% endfor %}
+\end{itemize}
+
+\vspace{0.3em}
+{% endfor %}
+
+% Default project if no data
+{% if not profile.projects %}
+\textbf{Portfolio Website} \hfill 2023
+
+Personal portfolio showcasing projects and skills.
+
+\begin{itemize}[leftmargin=1em, itemsep=0.2em, topsep=0.3em]
+    \item Built with React and deployed on Netlify
+    \item Responsive design with modern UI/UX principles
+    \item Integrated contact form with email functionality
+\end{itemize}
+
+\vspace{0.3em}
+{% endif %}
+
+{% endif %}
+
+% Certifications
+{% if 'certifications' in selected_sections %}
+\sectionheader{Certifications}
+
+{% for cert in profile.certifications | default([]) %}
+\textbf{ {{ cert.name }} } - {{ cert.issuer }}, {{ cert.date }}
+
+{% if cert.credential_id %}
+Credential ID: {{ cert.credential_id }}
+{% endif %}
+
+\vspace{0.3em}
+{% endfor %}
+
+% Default certification if no data
+{% if not profile.certifications %}
+\textbf{Professional Scrum Master I} - Scrum.org, 2023
+
+Credential ID: PSM-123456
+
+\vspace{0.3em}
+{% endif %}
+
+{% endif %}
+
+\end{document}

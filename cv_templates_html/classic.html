@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ profile.name | default("John Doe") }} - CV</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Times New Roman', Times, serif;
+            line-height: 1.6;
+            color: #000;
+            background: #fff;
+        }
+        
+        .container {
+            max-width: 210mm;
+            margin: 0 auto;
+            padding: 25mm;
+            min-height: 297mm;
+        }
+        
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #000;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .contact-info {
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        
+        /* Section Styles */
+        .section {
+            margin-bottom: 30px;
+        }
+        
+        .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            border-bottom: 1px solid #000;
+            padding-bottom: 2px;
+        }
+        
+        /* Experience */
+        .experience-item {
+            margin-bottom: 20px;
+        }
+        
+        .job-header {
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+        
+        .company-info {
+            font-style: italic;
+            margin-bottom: 8px;
+        }
+        
+        .responsibilities {
+            list-style-type: disc;
+            margin-left: 20px;
+        }
+        
+        .responsibilities li {
+            margin-bottom: 3px;
+            font-size: 14px;
+        }
+        
+        /* Education */
+        .education-item {
+            margin-bottom: 15px;
+        }
+        
+        .education-header {
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+        
+        .institution {
+            font-style: italic;
+            font-size: 14px;
+        }
+        
+        /* Skills */
+        .skills-list {
+            font-size: 14px;
+            line-height: 1.8;
+        }
+        
+        /* Summary */
+        .summary {
+            font-size: 14px;
+            text-align: justify;
+            line-height: 1.6;
+        }
+        
+        /* Projects */
+        .project-item {
+            margin-bottom: 20px;
+        }
+        
+        .project-header {
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+        
+        .project-description {
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        
+        /* Print Styles */
+        @media print {
+            body {
+                margin: 0;
+                padding: 0;
+            }
+            
+            .container {
+                padding: 20mm;
+                margin: 0;
+            }
+            
+            .section {
+                page-break-inside: avoid;
+                margin-bottom: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1>{{ profile.name | default("John Doe") }}</h1>
+            <div class="contact-info">
+                {{ profile.email | default("john.doe@example.com") }}{% if profile.phone %} • {{ profile.phone }}{% endif %}{% if profile.location %} • {{ profile.location }}{% endif %}
+                {% if profile.linkedin_url %}<br>{{ profile.linkedin_url }}{% endif %}
+            </div>
+        </header>
+
+        <!-- Objective -->
+        {% if 'summary' in selected_sections %}
+        <section class="section">
+            <h2 class="section-title">Objective</h2>
+            <div class="summary">
+                {{ profile.summary | default("Dedicated professional seeking to leverage skills and experience to contribute to organizational success.") }}
+            </div>
+        </section>
+        {% endif %}
+
+        <!-- Professional Experience -->
+        {% if 'experience' in selected_sections %}
+        <section class="section">
+            <h2 class="section-title">Professional Experience</h2>
+            
+            {% for experience in profile.experience | default([]) %}
+            <div class="experience-item">
+                <div class="job-header">
+                    <span>{{ experience.title }}</span>
+                    <span>{{ experience.duration }}</span>
+                </div>
+                <div class="company-info">{{ experience.company }}{% if experience.location %}, {{ experience.location }}{% endif %}</div>
+                {% if experience.responsibilities %}
+                <ul class="responsibilities">
+                    {% for responsibility in experience.responsibilities %}
+                    <li>{{ responsibility }}</li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+            </div>
+            {% endfor %}
+            
+            {% if not profile.experience %}
+            <div class="experience-item">
+                <div class="job-header">
+                    <span>Software Engineer</span>
+                    <span>2020 - Present</span>
+                </div>
+                <div class="company-info">ABC Company, New York, NY</div>
+                <ul class="responsibilities">
+                    <li>Developed and maintained web applications using modern technologies</li>
+                    <li>Collaborated with cross-functional teams to deliver software solutions</li>
+                    <li>Participated in code reviews and mentored junior developers</li>
+                </ul>
+            </div>
+            {% endif %}
+        </section>
+        {% endif %}
+
+        <!-- Education -->
+        {% if 'education' in selected_sections %}
+        <section class="section">
+            <h2 class="section-title">Education</h2>
+            
+            {% for education in profile.education | default([]) %}
+            <div class="education-item">
+                <div class="education-header">
+                    <span>{{ education.degree }}</span>
+                    <span>{{ education.year }}</span>
+                </div>
+                <div class="institution">{{ education.institution }}{% if education.location %}, {{ education.location }}{% endif %}</div>
+                {% if education.gpa %}
+                <div style="font-size: 14px; margin-top: 3px;">GPA: {{ education.gpa }}</div>
+                {% endif %}
+            </div>
+            {% endfor %}
+            
+            {% if not profile.education %}
+            <div class="education-item">
+                <div class="education-header">
+                    <span>Bachelor of Science in Computer Science</span>
+                    <span>2018</span>
+                </div>
+                <div class="institution">University Name, City, State</div>
+                <div style="font-size: 14px; margin-top: 3px;">Relevant Coursework: Data Structures, Algorithms, Software Engineering</div>
+            </div>
+            {% endif %}
+        </section>
+        {% endif %}
+
+        <!-- Skills -->
+        {% if 'skills' in selected_sections %}
+        <section class="section">
+            <h2 class="section-title">Skills</h2>
+            <div class="skills-list">
+                {% if profile.skills %}
+                {% for skill in profile.skills %}
+                • {{ skill }}{% if not loop.last %}<br>{% endif %}
+                {% endfor %}
+                {% else %}
+                • Programming Languages: Python, JavaScript, Java<br>
+                • Web Technologies: HTML, CSS, React, Node.js<br>
+                • Databases: MySQL, PostgreSQL, MongoDB<br>
+                • Tools: Git, Docker, AWS, Jenkins
+                {% endif %}
+            </div>
+        </section>
+        {% endif %}
+
+        <!-- Projects -->
+        {% if 'projects' in selected_sections %}
+        <section class="section">
+            <h2 class="section-title">Projects</h2>
+            
+            {% for project in profile.projects | default([]) %}
+            <div class="project-item">
+                <div class="project-header">{{ project.name }}{% if project.duration %} - {{ project.duration }}{% endif %}</div>
+                <div class="project-description">{{ project.description }}</div>
+                {% if project.details %}
+                <ul class="responsibilities">
+                    {% for detail in project.details %}
+                    <li>{{ detail }}</li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+            </div>
+            {% endfor %}
+            
+            {% if not profile.projects %}
+            <div class="project-item">
+                <div class="project-header">E-commerce Platform - 2023</div>
+                <div class="project-description">Developed a full-stack e-commerce platform with modern web technologies.</div>
+                <ul class="responsibilities">
+                    <li>Built responsive frontend using React and Bootstrap</li>
+                    <li>Implemented secure payment processing with Stripe API</li>
+                    <li>Deployed on AWS with automated CI/CD pipeline</li>
+                </ul>
+            </div>
+            {% endif %}
+        </section>
+        {% endif %}
+
+        <!-- Certifications -->
+        {% if 'certifications' in selected_sections %}
+        <section class="section">
+            <h2 class="section-title">Certifications</h2>
+            
+            {% for cert in profile.certifications | default([]) %}
+            <div class="education-item">
+                <div class="education-header">
+                    <span>{{ cert.name }}</span>
+                    <span>{{ cert.date }}</span>
+                </div>
+                <div class="institution">{{ cert.issuer }}</div>
+                {% if cert.credential_id %}
+                <div style="font-size: 14px; margin-top: 3px;">Credential ID: {{ cert.credential_id }}</div>
+                {% endif %}
+            </div>
+            {% endfor %}
+            
+            {% if not profile.certifications %}
+            <div class="education-item">
+                <div class="education-header">
+                    <span>AWS Certified Solutions Architect</span>
+                    <span>2023</span>
+                </div>
+                <div class="institution">Amazon Web Services</div>
+                <div style="font-size: 14px; margin-top: 3px;">Credential ID: AWS-ASA-123456</div>
+            </div>
+            {% endif %}
+        </section>
+        {% endif %}
+    </div>
+</body>
+</html>

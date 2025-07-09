@@ -1,0 +1,174 @@
+\documentclass[a4paper,11pt]{article}
+
+% Packages
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[margin=1in]{geometry}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{times}
+
+% Hyperlink setup
+\hypersetup{
+    colorlinks=false,
+    pdfborder={0 0 0}
+}
+
+% Section formatting
+\titleformat{\section}{\large\bfseries\uppercase}{}{0em}{}[\titlerule]
+\titlespacing{\section}{0pt}{1.5ex plus 0.5ex minus 0.2ex}{0.5ex plus 0.2ex}
+
+% Custom commands
+\newcommand{\name}[1]{\begin{center}\LARGE\textbf{#1}\end{center}}
+\newcommand{\contact}[1]{\begin{center}#1\end{center}}
+\newcommand{\job}[4]{\textbf{#1} \hfill #2 \\ \textit{#3} \hfill #4}
+
+% Remove page numbers
+\pagestyle{empty}
+
+% Adjust spacing
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.8em}
+
+\begin{document}
+
+% Header
+\name{{{ profile.name | default("John Doe") }}}
+\contact{
+    {{ profile.email | default("john.doe@example.com") }} $\bullet$ 
+    {{ profile.phone | default("N/A") }} $\bullet$ 
+    {{ profile.location | default("N/A") }}
+    {% if profile.linkedin_url %}
+    \\ {{ profile.linkedin_url }}
+    {% endif %}
+}
+
+\vspace{1em}
+
+% Objective/Summary
+{% if 'summary' in selected_sections %}
+\section{Objective}
+{{ profile.summary | default("Dedicated professional seeking to leverage skills and experience to contribute to organizational success.") }}
+{% endif %}
+
+% Experience
+{% if 'experience' in selected_sections %}
+\section{Professional Experience}
+
+{% for experience in profile.experience | default([]) %}
+\job{ {{ experience.title }} }{ {{ experience.duration }} }{ {{ experience.company }} }{ {{ experience.location | default("") }} }
+
+\begin{itemize}[leftmargin=1.5em, itemsep=0.3em]
+    {% for responsibility in experience.responsibilities | default([]) %}
+    \item {{ responsibility }}
+    {% endfor %}
+\end{itemize}
+{% endfor %}
+
+% Default experience if no data
+{% if not profile.experience %}
+\job{Software Engineer}{2020 - Present}{ABC Company}{New York, NY}
+
+\begin{itemize}[leftmargin=1.5em, itemsep=0.3em]
+    \item Developed and maintained web applications using modern technologies
+    \item Collaborated with cross-functional teams to deliver software solutions
+    \item Participated in code reviews and mentored junior developers
+\end{itemize}
+{% endif %}
+
+{% endif %}
+
+% Education
+{% if 'education' in selected_sections %}
+\section{Education}
+
+{% for education in profile.education | default([]) %}
+\job{ {{ education.degree }} }{ {{ education.year }} }{ {{ education.institution }} }{ {{ education.location | default("") }} }
+
+{% if education.gpa %}
+GPA: {{ education.gpa }}
+{% endif %}
+{% endfor %}
+
+% Default education if no data
+{% if not profile.education %}
+\job{Bachelor of Science in Computer Science}{2018}{University Name}{City, State}
+
+Relevant Coursework: Data Structures, Algorithms, Software Engineering
+{% endif %}
+
+{% endif %}
+
+% Skills
+{% if 'skills' in selected_sections %}
+\section{Skills}
+
+\begin{itemize}[leftmargin=1.5em, itemsep=0.3em]
+    {% for skill in profile.skills | default([]) %}
+    \item {{ skill }}
+    {% endfor %}
+    
+    {% if not profile.skills %}
+    \item Programming Languages: Python, JavaScript, Java
+    \item Web Technologies: HTML, CSS, React, Node.js
+    \item Databases: MySQL, PostgreSQL, MongoDB
+    \item Tools: Git, Docker, AWS, Jenkins
+    {% endif %}
+\end{itemize}
+
+{% endif %}
+
+% Projects
+{% if 'projects' in selected_sections %}
+\section{Projects}
+
+{% for project in profile.projects | default([]) %}
+\textbf{ {{ project.name }} } \hfill {{ project.duration }}
+
+{{ project.description }}
+
+\begin{itemize}[leftmargin=1.5em, itemsep=0.3em]
+    {% for detail in project.details | default([]) %}
+    \item {{ detail }}
+    {% endfor %}
+\end{itemize}
+{% endfor %}
+
+% Default project if no data
+{% if not profile.projects %}
+\textbf{E-commerce Platform} \hfill 2023
+
+Developed a full-stack e-commerce platform with modern web technologies.
+
+\begin{itemize}[leftmargin=1.5em, itemsep=0.3em]
+    \item Built responsive frontend using React and Bootstrap
+    \item Implemented secure payment processing with Stripe API
+    \item Deployed on AWS with automated CI/CD pipeline
+\end{itemize}
+{% endif %}
+
+{% endif %}
+
+% Certifications
+{% if 'certifications' in selected_sections %}
+\section{Certifications}
+
+{% for cert in profile.certifications | default([]) %}
+\textbf{ {{ cert.name }} } - {{ cert.issuer }}, {{ cert.date }}
+
+{% if cert.credential_id %}
+Credential ID: {{ cert.credential_id }}
+{% endif %}
+{% endfor %}
+
+% Default certification if no data
+{% if not profile.certifications %}
+\textbf{AWS Certified Solutions Architect} - Amazon Web Services, 2023
+
+Credential ID: AWS-ASA-123456
+{% endif %}
+
+{% endif %}
+
+\end{document}
